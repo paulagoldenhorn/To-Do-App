@@ -1,7 +1,6 @@
 // SEGURIDAD: Si no se encuentra en localStorage info del usuario
 // no lo deja acceder a la página, redirigiendo al login inmediatamente.
-
-
+if (localStorage.length === 0)  { location.replace('signup.html') }
 
 /* ------ comienzan las funcionalidades una vez que carga el documento ------ */
 window.addEventListener('load', function () {
@@ -16,8 +15,8 @@ window.addEventListener('load', function () {
 
   btnCerrarSesion.addEventListener('click', function () {
    
-
-
+    localStorage.clear()
+    window.location.reload()
 
   });
 
@@ -26,10 +25,14 @@ window.addEventListener('load', function () {
   /* -------------------------------------------------------------------------- */
 
   function obtenerNombreUsuario() {
-   
+   let nombreUsuario
 
+   fetch('endpoint')
+    .then( response => response.json() )
+    .then( data => nombreUsuario = data.userName )
+    .catch( error => console.log('Error' + error) );
 
-
+    return nombreUsuario
   };
 
 
@@ -38,11 +41,14 @@ window.addEventListener('load', function () {
   /* -------------------------------------------------------------------------- */
 
   function consultarTareas() {
-    
-    
+    let listadoTareas
 
+    fetch('endpoint')
+      .then( response => response.json() )
+      .then( data => listadoTareas = data.taskList )
+      .catch( error => console.log('Error' + error) );
 
-
+    return listadoTareas
   };
 
 
@@ -51,10 +57,24 @@ window.addEventListener('load', function () {
   /* -------------------------------------------------------------------------- */
 
   formCrearTarea.addEventListener('submit', function (event) {
-    
+    event.preventDefault()
 
+    const datos = {
+      campo: input.value
+    }
 
+    const config = {
+      method: 'POST',
+      body: JSON.stringify(datos),
+      headers: {
+          'Content-type': 'application/json; charset=UTF-8',
+      }
+    }
 
+    fetch('endpoint', config)
+      .then( response => response.json() )
+      .then( data => console.log(data) )
+      .catch( error => console.log('Error' + error) );
 
   });
 
