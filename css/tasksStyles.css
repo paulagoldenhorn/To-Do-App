@@ -212,7 +212,7 @@ main h2 {
     color: white;
 }
 
-.tareas-terminadas .tarea .descripcion .incompleta {
+.tareas-terminadas .tarea .descripcion .completa {
     background-color: var(--azul);
 }
 

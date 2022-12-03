@@ -1,23 +1,37 @@
 // SEGURIDAD: Si no se encuentra en localStorage info del usuario
 // no lo deja acceder a la página, redirigiendo al login inmediatamente.
-if (localStorage.length === 0)  { location.replace('signup.html') }
+if (!localStorage.jwt) { location.replace('./index.html') }
 
 /* ------ comienzan las funcionalidades una vez que carga el documento ------ */
 window.addEventListener('load', function () {
 
   /* ---------------- variables globales y llamado a funciones ---------------- */
+  const endpoint = 'http://todo-api.ctd.academy:3000/v1/'
+  const endpointTareas = `${endpoint}tasks`
+  const endpointUsuario = `${endpoint}users/getMe`
+  const token = JSON.parse(localStorage.jwt)
+
+  const formCrearTarea = document.querySelector('.nueva-tarea')
+  const nuevaTarea = document.querySelector('#nuevaTarea')
+  const btnCerrarSesion = document.querySelector('#closeApp')
+
+  obtenerNombreUsuario()
+  consultarTareas()
   
-
-
   /* -------------------------------------------------------------------------- */
   /*                          FUNCIÓN 1 - Cerrar sesión                         */
   /* -------------------------------------------------------------------------- */
 
   btnCerrarSesion.addEventListener('click', function () {
-   
-    localStorage.clear()
-    window.location.reload()
+    
+    const cerrarSesion = confirm('¿Desea cerrar sesión?')
 
+    // Eliminar info localStorage y redirigir al main
+    if (cerrarSesion) {
+      localStorage.clear()
+      location.replace('./index.html')
+    }
+    
   });
 
   /* -------------------------------------------------------------------------- */
@@ -25,14 +39,24 @@ window.addEventListener('load', function () {
   /* -------------------------------------------------------------------------- */
 
   function obtenerNombreUsuario() {
-   let nombreUsuario
 
-   fetch('endpoint')
-    .then( response => response.json() )
-    .then( data => nombreUsuario = data.userName )
-    .catch( error => console.log('Error' + error) );
+    // Configuracion del request
+    const settings = {
+      method: 'GET',
+      headers: {
+        authorization: token
+      }
+    }
 
-    return nombreUsuario
+    // Renderizar nombre de usuario
+   fetch(endpointUsuario, settings)
+    .then(response => response.json())
+    .then(data => {
+      const nombreUsuario = document.querySelector('.user-info p')
+      nombreUsuario.innerText = data.firstName
+    })
+    .catch(error => console.log(error));
+
   };
 
 
@@ -41,41 +65,62 @@ window.addEventListener('load', function () {
   /* -------------------------------------------------------------------------- */
 
   function consultarTareas() {
-    let listadoTareas
+    
+    // Configuracion del request
+    const settings = {
+      method: 'GET',
+      headers: {
+        authorization: token
+      }
+    }
 
-    fetch('endpoint')
-      .then( response => response.json() )
-      .then( data => listadoTareas = data.taskList )
-      .catch( error => console.log('Error' + error) );
+    fetch(endpointTareas, settings) 
+      .then(response => response.json())
+      .then(tareas => {
+        renderizarTareas(tareas)
+        botonesCambioEstado()
+        botonBorrarTarea()
+      })
+      .catch(error => console.log(error));
 
-    return listadoTareas
   };
-
 
   /* -------------------------------------------------------------------------- */
   /*                    FUNCIÓN 4 - Crear nueva tarea [POST]                    */
   /* -------------------------------------------------------------------------- */
 
   formCrearTarea.addEventListener('submit', function (event) {
+    
     event.preventDefault()
 
-    const datos = {
-      campo: input.value
+     // Cuerpo del request de la tarea
+    const tarea = {
+      description: nuevaTarea.value.trim(),
     }
 
-    const config = {
+    // Configuracion del request
+    const settings = {
       method: 'POST',
-      body: JSON.stringify(datos),
+      body: JSON.stringify(tarea),
       headers: {
-          'Content-type': 'application/json; charset=UTF-8',
+        'Content-type': 'application/json',
+        authorization: token
       }
     }
 
-    fetch('endpoint', config)
-      .then( response => response.json() )
-      .then( data => console.log(data) )
-      .catch( error => console.log('Error' + error) );
+    fetch(endpointTareas, settings)
+      .then(response => response.json())
+      .then(tareas => {
+        if (response.status === 400) console.log('Alguno de los datos requeridos está incompleto');
+        if (response.status === 401) console.log('Requiere Autorización');
+        if (response.status === 500) console.log('Error del servidor');        
+        consultarTareas()
+      })
+      .catch(error => console.log(error));
 
+    // Limpiar form
+    formCrearTarea.reset()
+    
   });
 
 
@@ -84,11 +129,48 @@ window.addEventListener('load', function () {
   /* -------------------------------------------------------------------------- */
   function renderizarTareas(listado) {
 
+    const tareasPendientes = document.querySelector('.tareas-pendientes')
+    const tareasTerminadas = document.querySelector('.tareas-terminadas')
+
+    // Limpiar caja cada vez que renderiza
+    tareasPendientes.innerHTML = ""
+    tareasTerminadas.innerHTML = ""
 
 
+    listado.forEach(tarea => {
+      
+      let fecha = new Date(tarea.createdAt)
 
+      // Verificar si la tarea esta completa
+      if (tarea.completed) {
+        tareasTerminadas.innerHTML += `
+        <li class="tarea">
+          <div class="hecha">
+            <i class="fa-regular fa-circle-check"></i>
+          </div>
+          <div class="descripcion">
+            <p class="nombre">${tarea.description}</p>
+            <div class="cambios-estados">
+              <button class="change completa" id="${tarea.id}"><i class="fa-solid fa-rotate-left"></i></button>
+              <button class="borrar" id="${tarea.id}"><i class="fa-regular fa-trash-can"></i></button>
+            </div>
+          </div>
+        </li>
+        `
+      }
+      else {
+        tareasPendientes.innerHTML += `
+        <li class="tarea">
+          <button class="change" id="${tarea.id}"><i class="fa-regular fa-circle"></i></button>
+          <div class="descripcion">
+            <p class="nombre">${tarea.description}</p>
+            <p class="timestamp">${fecha.toLocaleDateString()}</p>
+          </div>
+        </li>
+        `
+      }
 
-
+    })
 
   };
 
@@ -97,9 +179,42 @@ window.addEventListener('load', function () {
   /* -------------------------------------------------------------------------- */
   function botonesCambioEstado() {
     
+    const btnCambioEstado = document.querySelectorAll('.change')
+
+    btnCambioEstado.forEach(boton => {
+
+      boton.addEventListener('click', function () {
+
+        const id = boton.id
+        const url = `${endpointTareas}/${id}`
+        const payload = {}
+
+        // TOGGLE: Si el boton esta completo, mando al servidor que esta incompleto para renderizarlo correctamente
+        if (boton.classList.contains('completa')) payload.completed = false
+        else payload.completed = true
+
+        // Cuerpo del request (actualiza valor completed del boton)
+        const settings = {
+          method: 'PUT',
+          body: JSON.stringify(payload),
+          headers: {
+            authorization: token,
+            "Content-type": "application/json"
+          } 
+        }
+
+        fetch(url, settings)
+        .then(response => {
+          if (response.status === 400) console.log('ID Inválido');
+          if (response.status === 401) console.log('Requiere Autorización');
+          if (response.status === 404) console.log('Tarea inexistente');
+          if (response.status === 500) console.log('Error del servidor');
+          consultarTareas()
+        })
     
+      })
 
-
+    })
 
   }
 
@@ -109,10 +224,35 @@ window.addEventListener('load', function () {
   /* -------------------------------------------------------------------------- */
   function botonBorrarTarea() {
    
-    
+    const btnBorrarTarea = document.querySelectorAll('.borrar')
 
-    
+    btnBorrarTarea.forEach(boton => {
 
+      boton.addEventListener('click', function() {
+
+        const id = boton.id
+        const url = `${endpointTareas}/${id}`
+        
+        const settings = {
+          method: 'DELETE',
+          headers: {
+            authorization: token
+          }
+        }
+
+        fetch(url, settings)
+        .then(response => {
+          if (response.status === 400) console.log('ID Inválido');
+          if (response.status === 401) console.log('Requiere Autorización');
+          if (response.status === 404) console.log('Tarea inexistente');
+          if (response.status === 500) console.log('Error del servidor');
+          consultarTareas()
+        })
+
+      })
+
+    })
+    
   };
 
 });
