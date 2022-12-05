@@ -120,7 +120,7 @@ window.addEventListener('load', function () {
 
     // Limpiar form
     formCrearTarea.reset()
-    
+   
   });
 
 
@@ -131,6 +131,10 @@ window.addEventListener('load', function () {
 
     const tareasPendientes = document.querySelector('.tareas-pendientes')
     const tareasTerminadas = document.querySelector('.tareas-terminadas')
+    
+    // Capturar contador de tareas finalizadas
+    const numeroDeTareas = document.getElementById('cantidad-finalizadas')
+    let contador = 0
 
     // Limpiar caja cada vez que renderiza
     tareasPendientes.innerHTML = ""
@@ -140,9 +144,11 @@ window.addEventListener('load', function () {
     listado.forEach(tarea => {
       
       let fecha = new Date(tarea.createdAt)
-
+      
       // Verificar si la tarea esta completa
       if (tarea.completed) {
+        contador++
+
         tareasTerminadas.innerHTML += `
         <li class="tarea">
           <div class="hecha">
@@ -171,6 +177,9 @@ window.addEventListener('load', function () {
       }
 
     })
+    
+    // Rellenar contador
+    numeroDeTareas.innerText = contador
 
   };
 
@@ -209,6 +218,7 @@ window.addEventListener('load', function () {
           if (response.status === 401) console.log('Requiere Autorización');
           if (response.status === 404) console.log('Tarea inexistente');
           if (response.status === 500) console.log('Error del servidor');
+          // Pedir tareas y re-renderizarlas
           consultarTareas()
         })
     
@@ -246,6 +256,7 @@ window.addEventListener('load', function () {
           if (response.status === 401) console.log('Requiere Autorización');
           if (response.status === 404) console.log('Tarea inexistente');
           if (response.status === 500) console.log('Error del servidor');
+          // Pedir tareas y re-renderizarlas
           consultarTareas()
         })
 
