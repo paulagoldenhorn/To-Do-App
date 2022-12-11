@@ -18,9 +18,12 @@ window.addEventListener('load', function () {
     /* -------------------------------------------------------------------------- */
     /*            FUNCIÓN 1: Escuchamos el submit y preparamos el envío           */
     /* -------------------------------------------------------------------------- */
-    document.forms[0].addEventListener('submit', function (event) {
+    form.addEventListener('submit', function (event) {
        
         event.preventDefault()
+
+        // Mostrar spinner para indicar que se ha iniciado el proceso de registro
+        mostrarSpinner()
 
         // Cuerpo del request
         const payload = {
@@ -67,7 +70,8 @@ window.addEventListener('load', function () {
                 if (response.status === 500) {
                     alert('Error del servidor')
                 } 
-                
+                // Ocultamos el spinner
+                ocultarSpinner()
                 return response.json() 
             })
             .then( data => {                
@@ -76,7 +80,6 @@ window.addEventListener('load', function () {
                     console.log('Promesa aceptada') 
                     // Guardar JWT en local storage
                     localStorage.setItem('jwt', JSON.stringify(data.jwt))
-
                     // Redirigir a pagina de tareas
                     location.replace('./mis-tareas.html')
                 }
@@ -85,6 +88,7 @@ window.addEventListener('load', function () {
             .catch( error => {
                 console.log('Promesa rechazada')
                 console.log(error)
+                ocultarSpinner()
             });
     
     };

@@ -2,6 +2,10 @@
 // no lo deja acceder a la página, redirigiendo al login inmediatamente.
 if (!localStorage.jwt) { location.replace('./index.html') }
 
+window.onload = () => {
+  renderizarSkeletons(3, ".tareas-pendientes");
+};    
+
 /* ------ comienzan las funcionalidades una vez que carga el documento ------ */
 window.addEventListener('load', function () {
 
@@ -111,12 +115,16 @@ window.addEventListener('load', function () {
     fetch(endpointTareas, settings)
       .then(response => response.json())
       .then(tareas => {
-        if (response.status === 400) console.log('Alguno de los datos requeridos está incompleto');
-        if (response.status === 401) console.log('Requiere Autorización');
-        if (response.status === 500) console.log('Error del servidor');        
+        if (tareas.status === 400) console.log('Alguno de los datos requeridos está incompleto');
+        if (tareas.status === 401) console.log('Requiere Autorización');
+        if (tareas.status === 500) console.log('Error del servidor');        
+        removerSkeleton('.tareas-pendientes')
         consultarTareas()
       })
-      .catch(error => console.log(error));
+      .catch(error => {
+        console.log(error)
+        removerSkeleton('.tareas-pendientes') 
+      });
 
     // Limpiar form
     formCrearTarea.reset()

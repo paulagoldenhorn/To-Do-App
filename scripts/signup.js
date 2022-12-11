@@ -33,6 +33,8 @@ window.addEventListener('load', function () {
       
       // Crear container
       containerInput = document.createElement('div')
+      if (campo === campoPassword) containerInput.setAttribute('id', 'Contraseña')
+      if (campo === campoPasswordRepetida) containerInput.setAttribute('id', 'Repetir contraseña')
       
       /* ----------------- CSS ----------------- */
       // Estilos css al container
@@ -78,9 +80,17 @@ window.addEventListener('load', function () {
     /* -------------------------- Renderizar errores --------------------------- */
     function renderizarError(error, posicion) {
       const errorTexto = document.createElement('p')
+      errorTexto.id = 'errores'
       errorTexto.innerText = error
       errorTexto.style = 'display: flex; color: #ff4949; font-size: 12px; margin-bottom: 1rem '
       posicion.insertAdjacentElement('afterend', errorTexto)
+    }
+ /* -------------------------- Resetear errores --------------------------- */
+    function resetearErrores() {
+      const errores = document.querySelectorAll('#errores')
+      errores.forEach(err => {
+        form.removeChild(err)        
+      });
     }
 
     /* ---------------------------- Validar datos ---------------------------- */
@@ -121,9 +131,14 @@ window.addEventListener('load', function () {
     form.addEventListener('submit', function (event) {
       
       event.preventDefault()
+      
+      resetearErrores()
 
       // Validar datos antes de crear request
       if (validarDatos()) {
+        
+        // Mostrar spinner para indicar que se ha iniciado el proceso de registro
+        mostrarSpinner()
 
         // Cuerpo del request
         const payload = {
@@ -166,6 +181,8 @@ window.addEventListener('load', function () {
           if (response.status === 500) {
             alert('Error del servidor')
           }
+          // Ocultamos el spinner
+          ocultarSpinner()
 
           return response.json() 
         })
@@ -175,7 +192,6 @@ window.addEventListener('load', function () {
             console.log('Promesa aceptada') 
             // Guardar JWT en local storage
             localStorage.setItem('jwt', JSON.stringify(data.jwt))
-
             // Redirigir a pagina de tareas
             location.replace('./mis-tareas.html')
           }
@@ -184,6 +200,7 @@ window.addEventListener('load', function () {
         .catch( error => {
           console.log('Promesa rechazada')
           console.log(error)
+          ocultarSpinner()
         });
 
     };
