@@ -28,14 +28,25 @@ window.addEventListener('load', function () {
 
   btnCerrarSesion.addEventListener('click', function () {
     
-    const cerrarSesion = confirm('¿Desea cerrar sesión?')
+    //const cerrarSesion = confirm('¿Desea cerrar sesión?')
 
-    // Eliminar info localStorage y redirigir al main
-    if (cerrarSesion) {
-      localStorage.clear()
-      location.replace('./index.html')
-    }
-    
+    // Eliminar info localStorage y redirigir al main   
+    Swal.fire({
+      title: '¿Desea cerrar sesión?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Aceptar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire('Sesión cerrada correctamente','Nos vemos!','success')
+        localStorage.clear()
+        location.replace('./index.html')
+      }
+    })
+
   });
 
   /* -------------------------------------------------------------------------- */

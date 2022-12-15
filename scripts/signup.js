@@ -33,8 +33,10 @@ window.addEventListener('load', function () {
       
       // Crear container
       containerInput = document.createElement('div')
-      if (campo === campoPassword) containerInput.setAttribute('id', 'Contraseña')
-      if (campo === campoPasswordRepetida) containerInput.setAttribute('id', 'Repetir contraseña')
+      containerInput.setAttribute('id', `id-${campo}`)
+      console.log(containerInput);
+      // if (campo === campoPassword) containerInput.setAttribute('id', 'Contraseña')
+      // if (campo === campoPasswordRepetida) containerInput.setAttribute('id', 'Repetir contraseña')
       
       /* ----------------- CSS ----------------- */
       // Estilos css al container
