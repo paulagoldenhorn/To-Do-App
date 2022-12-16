@@ -62,13 +62,13 @@ window.addEventListener('load', function () {
                 
                 // Renderizar errores
                 if (response.status === 400) {
-                    renderizarError('Contraseña incorrecta', contenedorError)
+                    Swal.fire({ icon: 'error', title: 'Contraseña incorrecta' })
                 } 
                 if (response.status === 404) {
-                    renderizarError('El usuario no existe', contenedorError)
+                    Swal.fire('El usuario no existe')
                 } 
                 if (response.status === 500) {
-                    alert('Error del servidor')
+                    Swal.fire('Error del servidor')
                 } 
                 // Ocultamos el spinner
                 ocultarSpinner()

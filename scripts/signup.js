@@ -7,13 +7,25 @@ window.addEventListener('load', function () {
     const campoPassword = document.getElementById('inputPassword')
     const campoPasswordRepetida = document.getElementById('inputPasswordRepetida')
     const endpoint = 'http://todo-api.ctd.academy:3000/v1/users'
-
-    /* -------------------------- Ver contraseña --------------------------- */
+    
+    /* -------------------------- Renderizar errores --------------------------- */
+    function renderizarError(error, posicion) {
+      const errorTexto = document.createElement('p')
+      errorTexto.id = 'errores'
+      errorTexto.innerText = error
+      errorTexto.style = 'display: flex; color: #ff4949; font-size: 12px; margin-bottom: 1rem '
+      posicion.insertAdjacentElement('afterend', errorTexto)
+    }
+    /* -------------------------- Resetear errores --------------------------- */
+    function resetearErrores() {
+      const errores = document.querySelectorAll('#errores')
+      errores.forEach(err => { form.removeChild(err) });
+    }
+    /* -------------------------- Logica icono ver contraseña --------------------------- */
     let iconoVerPassword
     let containerInput
     
     function toggleIcon(campo) {
-      /* ----------------- LOGICA ICONO ----------------- */
       iconoVerPassword.addEventListener('click', e => {
         e.preventDefault()
         const typePassword = campo.getAttribute('type')
@@ -26,19 +38,14 @@ window.addEventListener('load', function () {
     }
     
     function crearContainer(campo) {
-      /* ----------------- CREAR ----------------- */
       // Crear icono
       iconoVerPassword = document.createElement('a')
       iconoVerPassword.innerHTML = '<i class="fa-regular fa-eye"></i>'
       
       // Crear container
       containerInput = document.createElement('div')
-      containerInput.setAttribute('id', `id-${campo}`)
-      console.log(containerInput);
-      // if (campo === campoPassword) containerInput.setAttribute('id', 'Contraseña')
-      // if (campo === campoPasswordRepetida) containerInput.setAttribute('id', 'Repetir contraseña')
-      
-      /* ----------------- CSS ----------------- */
+      containerInput.setAttribute('id', `container-${campo.id}`)
+        
       // Estilos css al container
       containerInput.style = 'display: flex; justify-content: end; align-items: center; margin-bottom: 1rem; width: fit-content'
       
@@ -53,7 +60,6 @@ window.addEventListener('load', function () {
     
     function inyectarContainer(campo, posicion) {
       crearContainer(campo)
-      /* ----------------- INYECTAR ----------------- */
       // Inyectar input al container
       containerInput.appendChild(campo)
       
@@ -78,22 +84,6 @@ window.addEventListener('load', function () {
 
     inyectarContainer(campoPassword, labelPassword)
     inyectarContainer(campoPasswordRepetida, labelPasswordRepetida)
-    
-    /* -------------------------- Renderizar errores --------------------------- */
-    function renderizarError(error, posicion) {
-      const errorTexto = document.createElement('p')
-      errorTexto.id = 'errores'
-      errorTexto.innerText = error
-      errorTexto.style = 'display: flex; color: #ff4949; font-size: 12px; margin-bottom: 1rem '
-      posicion.insertAdjacentElement('afterend', errorTexto)
-    }
- /* -------------------------- Resetear errores --------------------------- */
-    function resetearErrores() {
-      const errores = document.querySelectorAll('#errores')
-      errores.forEach(err => {
-        form.removeChild(err)        
-      });
-    }
 
     /* ---------------------------- Validar datos ---------------------------- */
     function validarDatos() {
@@ -115,12 +105,12 @@ window.addEventListener('load', function () {
       }  
 
       if (!validarContrasenia(campoPassword.value)) {
-        renderizarError('La contraseña debe contener como mínimo 8 caracteres', document.getElementById('Contraseña'))
+        renderizarError('La contraseña debe contener como mínimo 8 caracteres', campoPassword.parentNode)
         datosCorrectos = false
       } 
       
       if (!compararContrasenias(campoPassword.value, campoPasswordRepetida.value)) {
-        renderizarError('Por favor, repita la contraseña correctamente', document.getElementById('Repetir contraseña'))
+        renderizarError('Por favor, repita la contraseña correctamente', campoPasswordRepetida.parentNode)
         datosCorrectos = false
       }
 
@@ -178,10 +168,10 @@ window.addEventListener('load', function () {
         .then( response => {
            
           if (response.status === 400) {
-            alert('El usuario ya se encuentra registrado')
+            Swal.fire('El usuario ya se encuentra registrado')
           }
           if (response.status === 500) {
-            alert('Error del servidor')
+            Swal.fire('Error del servidor')
           }
           // Ocultamos el spinner
           ocultarSpinner()
